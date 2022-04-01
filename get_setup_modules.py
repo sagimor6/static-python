@@ -33,6 +33,8 @@ def get_setup_build_ext():
                 if e.name in self.failed:
                     continue
                 defines_and_flags = ' '.join(['-D' + define_to_str(x) for x in e.define_macros] + [x for x in e.extra_compile_args])
+                if e.name == '_testcapi':
+                    defines_and_flags += ' -UPy_BUILD_CORE_BUILTIN -UPy_BUILD_CORE '
                 def_line = '__' + e.name + '_DEFS=__BLABLA__ ' + defines_and_flags
                 line = [
                     e.name,

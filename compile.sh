@@ -23,8 +23,8 @@ cd build
 
 BUILD_DIR=$(pwd)
 
-#tar -xJf $SRC_PATH/Python-3.9.7.tar.xz
-tar -xJf $SRC_PATH/Python-2.7.18.tar.xz
+tar -xJf $SRC_PATH/Python-3.9.7.tar.xz
+#tar -xJf $SRC_PATH/Python-2.7.18.tar.xz
 tar -xJf $SRC_PATH/xz-5.2.5.tar.xz
 tar -xJf $SRC_PATH/zlib-1.2.11.tar.xz
 tar -xzf $SRC_PATH/openssl-1.1.1l.tar.gz
@@ -193,8 +193,8 @@ make install_sw -j8 DESTDIR=${BUILD_DIR}/fake_root
 
 cd ..
 
-#cd Python-3.9.7/
-cd Python-2.7.18/
+cd Python-3.9.7/
+#cd Python-2.7.18/
 
 ./configure
 

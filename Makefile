@@ -11,8 +11,8 @@ OPT_LDFLAGS = -flto -fuse-linker-plugin -ffat-lto-objects -Wl,--gc-sections -Os 
 
 SRC_PATH_ABS=$(shell pwd)
 
-BUILD_DIR=tmp/build
-OUTPUT_DIR=tmp/final
+BUILD_DIR=build
+OUTPUT_DIR=final
 
 BUILD_DIR_ABS=$(SRC_PATH_ABS)/$(BUILD_DIR)
 
@@ -208,7 +208,7 @@ $(PY_BUILD_DIR)/made_host_Python-$(Python_VER): $(PY_BUILD_DIR)/made_host_%: %.t
 	tar -xJf $(SRC_PATH_ABS)/$^; \
 	cd $*; \
 	./configure; \
-	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ $(MAKE) altinstall; \
+	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ $(MAKE) altinstall bininstall; \
 	)
 	touch $@
 
@@ -284,7 +284,7 @@ $(PY_BUILD_DIR)/python_lib.zip: $(PY_BUILD_DIR)/made_Python-$(Python_VER) zipper
 	)
 	# fixup ctypes to load
 	sed -i 's/pythonapi = PyDLL(None)/pythonapi = None/g' $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/*/*/ctypes/__init__.py || true
-	PYTHONHOME=$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local $(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin/python?.? $(SRC_PATH_ABS)/zipper.py $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local $(SRC_PATH_ABS)/$@
+	PYTHONHOME=$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local $(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin/python[0-9] $(SRC_PATH_ABS)/zipper.py $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local $(SRC_PATH_ABS)/$@
 
 $(PY_BUILD_DIR)/static_python: $(PY_BUILD_DIR)/python-stripped $(PY_BUILD_DIR)/python_lib.zip
 	cat $(PY_BUILD_DIR)/python-stripped $(PY_BUILD_DIR)/python_lib.zip > $@

@@ -11,10 +11,10 @@ Currently, the script minimizes size in exchange for performance.
 The script was tested with python 3.9.7 and 2.7.18 for aarch64 and worked.
 
 USAGE:
-`
-make distclean
-Python_VER=3.9.7 make -j all
-`
+``
+    make distclean
+    Python_VER=3.9.7 make -j all
+``
 
 
 TODO:

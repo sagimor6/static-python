@@ -19,7 +19,7 @@ BUILD_DIR_ABS=$(SRC_PATH_ABS)/$(BUILD_DIR)
 PY_BUILD_DIR=$(BUILD_DIR)/pybuild_$(Python_VER)
 PY_BUILD_DIR_ABS=$(SRC_PATH_ABS)/$(PY_BUILD_DIR)
 
-.PHONY: clean distclean bla all
+.PHONY: clean distclean download bla all
 clean:
 	-rm -rf $(BUILD_DIR) $(OUTPUT_DIR)
 
@@ -101,6 +101,8 @@ $(foreach package,$(TAR_XZ_PACKAGES),$(eval $(call tar_xz_template,$(package))))
 $(foreach package,$(TAR_GZ_PACKAGES),$(eval $(call tar_gz_template,$(package))))
 
 PATH_ENVS = DESTDIR="$(BUILD_DIR_ABS)/fake_root" PATH="$$PATH:$(MY_CROSS_PATH)"
+
+download: $(foreach package,$(TAR_XZ_PACKAGES),$($(package)-$($(package)_VER)_tar_xz)) $(foreach package,$(TAR_GZ_PACKAGES),$($(package)-$($(package)_VER)_tar_gz))
 
 $(BUILD_DIR)/ $(OUTPUT_DIR)/ $(PY_BUILD_DIR)/:
 	mkdir -p $@

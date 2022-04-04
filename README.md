@@ -13,7 +13,7 @@ The script was tested with python 3.9.7 and 2.7.18 for aarch64 and worked.
 USAGE:
 ```
 make distclean
-Python_VER=3.9.7 make -j all
+MY_CROSS_ARCH=aarch64-buildroot-linux-musl MY_CROSS_PATH=/opt/aarch64-buildroot-linux-musl/bin Python_VER=3.9.7 make -j all
 ```
 
 

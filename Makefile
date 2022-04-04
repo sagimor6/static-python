@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 MY_CROSS_ARCH ?= aarch64-buildroot-linux-musl
-MY_CROSS_PATH ?= /opt/compilers/aarch64-buildroot-linux-musl/bin
+MY_CROSS_PATH ?= /opt/aarch64-buildroot-linux-musl/bin
 MY_CROSS_PREFIX ?= $(MY_CROSS_PATH)/$(MY_CROSS_ARCH)-
 MY_CROSS_OPENSSL_MACHINE ?= $(word 1, $(subst -, ,$(MY_CROSS_ARCH)))
 MY_CROSS_OPENSSL_LONG ?= $(word 3, $(subst -, ,$(MY_CROSS_ARCH)))-$(MY_CROSS_OPENSSL_MACHINE)

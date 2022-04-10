@@ -11,6 +11,13 @@ OPT_LDFLAGS = -flto -fuse-linker-plugin -ffat-lto-objects -Wl,--gc-sections -Os 
 
 MODULE_BLACKLIST ?=
 
+CC ?= $(MY_CROSS_PREFIX)gcc
+
+check_cc_flag = $(if $(shell if $(CC) $(1) -Wl,--help -xc -o /dev/null /dev/null >/dev/null 2>/dev/null; then echo a; fi; ),$(1),)
+
+OPT_CFLAGS := $(foreach cflag,$(OPT_CFLAGS),$(call check_cc_flag,$(cflag)))
+OPT_LDFLAGS := $(foreach cflag,$(OPT_LDFLAGS),$(call check_cc_flag,$(cflag)))
+
 SRC_PATH_ABS=$(shell pwd)
 
 BUILD_DIR=build

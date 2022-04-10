@@ -26,6 +26,17 @@ def get_setup_build_ext():
             build_ext.__init__(self, dist)
             
         def build_extensions(self):
+            
+            if 'MODULE_BLACKLIST' in os.environ and len(os.environ['MODULE_BLACKLIST'].strip()) != 0:
+                module_blacklist = set(os.environ['MODULE_BLACKLIST'].strip().split(' '))
+                exts = []
+                for e in self.extensions:
+                    if e.name in module_blacklist:
+                        self.failed.append(e.name)
+                    else:
+                        exts.append(e)
+                self.extensions = exts
+            
             build_ext.build_extensions(self)
             
             lines = []

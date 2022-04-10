@@ -9,6 +9,8 @@ MY_CROSS_OPENSSL_LONG ?= $(word 3, $(subst -, ,$(MY_CROSS_ARCH)))-$(MY_CROSS_OPE
 OPT_CFLAGS = -ffunction-sections -fdata-sections -flto -fuse-linker-plugin -ffat-lto-objects -Os
 OPT_LDFLAGS = -flto -fuse-linker-plugin -ffat-lto-objects -Wl,--gc-sections -Os -flto-partition=one
 
+MODULE_BLACKLIST ?=
+
 SRC_PATH_ABS=$(shell pwd)
 
 BUILD_DIR=build
@@ -223,7 +225,7 @@ $(PY_BUILD_DIR)/modules_to_add: Python-$(Python_VER).tar.xz get_setup_modules.py
 	LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --with-system-ffi --with-ensurepip=no --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	mv setup.py setup2.py; \
 	cp $(SRC_PATH_ABS)/get_setup_modules.py setup.py; \
-	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" $(MAKE) sharedmods; \
+	MODULE_BLACKLIST="$(MODULE_BLACKLIST)" DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" $(MAKE) sharedmods; \
 	cp modules_to_add $(SRC_PATH_ABS)/$@; \
 	)
 

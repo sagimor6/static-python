@@ -16,10 +16,17 @@ make distclean
 MY_CROSS_ARCH=aarch64-buildroot-linux-musl MY_CROSS_PATH=/opt/aarch64-buildroot-linux-musl/bin Python_VER=3.9.7 make -j all
 ```
 
+In order to blacklist modules use the ``MODULE_BLACKLIST`` environment variable, which is a list of module names seperated by spaces.
+for example to build a very minimal static python:
+```
+export MODULE_BLACKLIST="gdbm dbm crypt _xxsubinterpreters audioop _testcapi _testinternalcapi _testbuffer _testimportmultiple _testmultiphase _xxtestfuzz readline _curses _curses_panel _crypt _ssl _hashlib _dbm _gdbm _sqlite3 ossaudiodev _bz2 _lzma pyexpat _elementtree _multibytecodec _codecs_kr _codecs_jp _codecs_cn _codecs_tw _codecs_hk _codecs_iso2022 _decimal _ctypes_test _ctypes _uuid xxlimited"
+make -j all
+```
 
 TODO:
 - I currently don't support the tkinter module.
 - There are no tests.
-- Allow the user to disable modules (not by editing the script).
+- Don't compile dependencies of blacklisted modules.
+- Enable option to remove non binary modules, like distutils.
 - more TODOs.
 

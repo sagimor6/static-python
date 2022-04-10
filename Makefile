@@ -134,7 +134,7 @@ $(BUILD_DIR)/made_sqlite-autoconf-$(sqlite-autoconf_VER): $(BUILD_DIR)/made_%: $
 $(BUILD_DIR)/made_ncurses-$(ncurses_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
-	PATH="$$PATH:$(MY_CROSS_PATH)" CFLAGS="$(OPT_CFLAGS)" ./configure --host=$(MY_CROSS_ARCH) INSTALL="/usr/bin/install -c --strip-program=$(MY_CROSS_PREFIX)strip" --with-shared --disable-database --disable-termcap --with-fallbacks="dumb,vt100,linux,xterm-256color,vt400,xterm,putty,xterm-16color,xterm-88color,rxvt,putty-256color,konsole,screen" --prefix=/usr/local --disable-db-install --without-manpages --without-progs --without-tack --without-tests; \
+	PATH="$$PATH:$(MY_CROSS_PATH)" CFLAGS="$(OPT_CFLAGS)" LDFLAGS="-fPIC" ./configure --host=$(MY_CROSS_ARCH) INSTALL="/usr/bin/install -c --strip-program=$(MY_CROSS_PREFIX)strip" --with-shared --disable-database --disable-termcap --with-fallbacks="dumb,vt100,linux,xterm-256color,vt400,xterm,putty,xterm-16color,xterm-88color,rxvt,putty-256color,konsole,screen" --prefix=/usr/local --disable-db-install --without-manpages --without-progs --without-tack --without-tests; \
 	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) all DESTDIR="$(BUILD_DIR_ABS)/fake_root"; \
 	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) install DESTDIR="$(BUILD_DIR_ABS)/fake_root"; \
 	)
@@ -143,7 +143,7 @@ $(BUILD_DIR)/made_ncurses-$(ncurses_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 $(BUILD_DIR)/made_readline-$(readline_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/ $(BUILD_DIR)/made_ncurses-$(ncurses_VER)
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
-	PATH="$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) CFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include $(OPT_CFLAGS)" LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib"; \
+	PATH="$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) CFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include $(OPT_CFLAGS)" LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -fPIC"; \
 	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) install DESTDIR="$(BUILD_DIR_ABS)/fake_root" MFLAGS="SHLIB_LIBS=\"-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -lncurses\""; \
 	)
 	touch $@

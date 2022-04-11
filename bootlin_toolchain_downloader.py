@@ -4,6 +4,7 @@ import subprocess
 import re
 import requests
 import argparse
+import stat
 
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -12,6 +13,7 @@ def main():
     parser.add_argument('--date', help='The toolchain date. E.g: 2021.11, 2020.08, ...')
     parser.add_argument('--bleeding', action='store_true', default=False, help='Use bleeding edge toolchain, not the stable one')
     parser.add_argument('--extract', action='store_true', default=False, help='Exctact toolchain')
+    parser.add_argument('--make_runner', action='store_true', default=False, help='Make Makefile runner')
     
     args = parser.parse_args()
     
@@ -72,6 +74,12 @@ def main():
         if gcc is not None:
             prefix = gcc[:-len('-gcc')]
             print('compile with: MY_CROSS_ARCH="{}" MY_CROSS_PATH="{}"'.format(prefix, os.path.join(os.getcwd(), dir_name, 'bin')))
+            if args.make_runner:
+                with open('make_runner.sh', 'w') as f:
+                    f.write('''#!/bin/sh
+MY_CROSS_ARCH="{}" MY_CROSS_PATH="{}" make "$@"
+'''.format(prefix, os.path.join(os.getcwd(), dir_name, 'bin')))
+                os.chmod('make_runner.sh', stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
 
 
 if __name__ == '__main__':

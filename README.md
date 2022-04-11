@@ -23,6 +23,11 @@ export MODULE_BLACKLIST="gdbm dbm crypt _xxsubinterpreters audioop _testcapi _te
 make -j all
 ```
 
+When building the Dockerfile, you need to pass ARCH and LIBC args. for exmaple:
+```
+docker build -t static_python_gen --build-arg=ARCH=aarch64 --build-arg=LIBC=musl .
+```
+
 TODO:
 - I currently don't support the tkinter module.
 - There are no tests.

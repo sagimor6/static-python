@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: General CI
 
 on:
   push:
@@ -56,8 +56,6 @@ jobs:
       with:
         name: static_python_normal
         path: normal/
-    - run: ls -la
-    - run: ls -la *
     - name: Compare
       run: cmp -s normal/static_python docker/static_python
     
@@ -66,12 +64,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_normal]
     steps:
-    - run: sudo apt install -y qemu-user-static
+    - name: Prerequisites 
+      run: sudo apt install -y qemu-user-static
     - uses: actions/download-artifact@v3
       with:
         name: static_python_normal
-    - run: ls -la
-    - run: ls -la *
+    - run: chmod u+x ./static_python
     - name: Test binary with qemu
       run: qemu-aarch64-static ./static_python -c 'print("hello")'
     

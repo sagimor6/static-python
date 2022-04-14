@@ -17,8 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - run: apt install -y qemu-user-static
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build --build-arg=ARCH=aarch64 --build-arg=LIBC=musl --tag static-python-maker .
     - name: Run the Docker image
-      run: docker run static-python-maker
+      run: docker run --name static-python-container static-python-maker
+    - name: Get output binary out of docker
+      run: docker cp static-python-container:/app/final/static_python .
+    - name: Test binary with qemu
+      run: qmemu-aarch64-static ./static_python -c 'print("hello")'

@@ -1,12 +1,12 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
+  #push:
+  #  branches:
+  #    - '**'
+  #pull_request:
+  #  branches:
+  #    - '**'
   workflow_dispatch:
     
 
@@ -19,4 +19,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build --build-arg=ARCH=aarch64 --build-arg=LIBC=musl --tag static-python-aarch64-musl:$(date +%s) .
+      run: docker build --build-arg=ARCH=aarch64 --build-arg=LIBC=musl --tag static-python-maker .
+    - name: Run the Docker image
+      run: docker run static-python-maker

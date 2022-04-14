@@ -26,4 +26,4 @@ jobs:
     - name: Get output binary out of docker
       run: docker cp static-python-container:/app/final/static_python .
     - name: Test binary with qemu
-      run: qmemu-aarch64-static ./static_python -c 'print("hello")'
+      run: qemu-aarch64-static ./static_python -c 'print("hello")'

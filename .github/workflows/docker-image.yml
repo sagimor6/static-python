@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - run: apt install -y qemu-user-static
+    - run: sudo apt install -y qemu-user-static
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build --build-arg=ARCH=aarch64 --build-arg=LIBC=musl --tag static-python-maker .

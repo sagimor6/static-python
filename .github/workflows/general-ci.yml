@@ -101,5 +101,5 @@ jobs:
         name: static_python_normal
     - run: chmod u+x ./static_python
     - name: Test binary with qemu
-      run: qemu-aarch64-static ./static_python -c 'print("hello")'
+      run: qemu-${{ inputs.arch }}-static ./static_python -c 'print("hello")'
     

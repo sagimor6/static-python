@@ -5,12 +5,12 @@ on:
     inputs:
       arch:
         type: string
-        required: true
+        required: false
         description: "CPU Architecture"
         default: aarch64
       libc:
         type: string
-        required: true
+        required: false
         description: "LIBC name"
         default: musl
   

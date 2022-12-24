@@ -7,10 +7,28 @@ on:
         type: string
         required: true
         description: "CPU Architecture"
+        default: aarch64
       libc:
         type: string
         required: true
         description: "LIBC name"
+        default: musl
+  
+  workflow_dispatch:
+    inputs:
+      arch:
+        required: true
+        description: "CPU Architecture"
+        default: aarch64
+      libc:
+        required: true
+        description: "LIBC name"
+        type: choice
+        options:
+          - musl
+          - uclibc
+          - glibc
+        default: musl
 
 jobs:
 

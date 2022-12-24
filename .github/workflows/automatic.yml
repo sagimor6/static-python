@@ -11,4 +11,4 @@ on:
 
 jobs:
   run_ci:
-    uses: ./.github/workflows/genetal-ci.yml
+    uses: ./.github/workflows/general-ci.yml

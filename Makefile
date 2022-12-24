@@ -103,8 +103,8 @@ util-linux_LINK ?= https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v$
 
 Python_build_dir = $(PY_BUILD_DIR)
 
-TAR_XZ_PACKAGES = Python xz zlib util-linux
-TAR_GZ_PACKAGES = openssl bzip2 libffi ncurses readline gdbm sqlite-autoconf
+TAR_XZ_PACKAGES = Python xz util-linux
+TAR_GZ_PACKAGES = zlib openssl bzip2 libffi ncurses readline gdbm sqlite-autoconf
 
 $(foreach package,$(TAR_XZ_PACKAGES),$(eval $(call tar_xz_template,$(package))))
 $(foreach package,$(TAR_GZ_PACKAGES),$(eval $(call tar_gz_template,$(package))))

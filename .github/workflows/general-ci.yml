@@ -1,14 +1,16 @@
 name: General CI
 
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
-  workflow_dispatch:
-    
+  workflow_call:
+    inputs:
+      arch:
+        type: string
+        required: true
+        description: "CPU Architecture"
+      libc:
+        type: string
+        required: true
+        description: "LIBC name"
 
 jobs:
 
@@ -17,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build --build-arg=ARCH=aarch64 --build-arg=LIBC=musl --tag static-python-maker .
+      run: docker build --build-arg=ARCH=${{ inputs.arch }} --build-arg=LIBC=${{ inputs.libc }} --tag static-python-maker .
     - name: Run the Docker image
       run: docker run --name static-python-container static-python-maker
     - name: Get output binary out of docker

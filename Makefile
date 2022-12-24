@@ -96,7 +96,7 @@ gdbm_LINK ?= https://ftp.gnu.org/gnu/gdbm/
 sqlite-autoconf_LINK ?= https://www.sqlite.org/2022/
 Python_LINK ?= https://www.python.org/ftp/python/$(Python_VER)/
 xz_LINK ?= https://tukaani.org/xz/
-zlib_LINK ?= https://zlib.net/
+zlib_LINK ?= https://zlib.net/fossils/
 util-linux_LINK ?= https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v$(util-linux_SHORT_VER)/
 
 #bzip2-1.0.8_tar_gz = bzip2-latest.tar.gz

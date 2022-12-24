@@ -12,11 +12,12 @@ COPY bootlin_toolchain_downloader.py .
 
 ARG ARCH
 ARG LIBC
+ARG PYTHON_VER=3.9.7
 
 RUN python3 bootlin_toolchain_downloader.py $ARCH $LIBC --extract --make_runner \
     && rm -f *.tar.bz2
 
 RUN apt-get purge -y python3 python3-requests && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-CMD ./make_runner.sh -j all
+CMD Python_VER=$PYTHON_VER ./make_runner.sh -j all
 

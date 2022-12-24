@@ -13,6 +13,11 @@ on:
         required: false
         description: "LIBC name"
         default: musl
+      python_ver:
+        type: string
+        required: false
+        description: "Python version"
+        default: 3.9.7
   
   workflow_dispatch:
     inputs:
@@ -29,6 +34,11 @@ on:
           - uclibc
           - glibc
         default: musl
+      python_ver:
+        type: string
+        required: true
+        description: "Python version"
+        default: 3.9.7
 
 jobs:
 
@@ -37,7 +47,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build --build-arg=ARCH=${{ inputs.arch }} --build-arg=LIBC=${{ inputs.libc }} --tag static-python-maker .
+      run: docker build --build-arg=ARCH=${{ inputs.arch }} --build-arg=LIBC=${{ inputs.libc }} --build-arg=PYTHON_VER=${{ inputs.python_ver }} --tag static-python-maker .
     - name: Run the Docker image
       run: docker run --name static-python-container static-python-maker
     - name: Get output binary out of docker

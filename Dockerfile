@@ -19,5 +19,7 @@ RUN python3 bootlin_toolchain_downloader.py $ARCH $LIBC --extract --make_runner 
 
 RUN apt-get purge -y python3 python3-requests && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-CMD Python_VER=$PYTHON_VER ./make_runner.sh -j all
+ENV Python_VER=$PYTHON_VER
+
+CMD ./make_runner.sh -j all
 

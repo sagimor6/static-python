@@ -189,7 +189,7 @@ $(BUILD_DIR)/made_mpdecimal-$(mpdecimal_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
 	$(PATH_ENVS) CFLAGS="$(OPT_CFLAGS) -fwrapv" ./configure --host=$(MY_CROSS_ARCH); \
-	$(PATH_ENVS) $(MAKE) install; \
+	$(PATH_ENVS) $(MAKE) LDFLAGS="-fPIC" install; \
 	)
 	touch $@
 

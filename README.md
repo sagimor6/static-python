@@ -2,6 +2,8 @@
 
 [![General CI](https://github.com/sagimor6/static-python/workflows/General%20CI/badge.svg?event=push)](https://github.com/sagimor6/static-python/actions/workflows/general-ci.yml)
 
+[![Automatic ci](https://github.com/sagimor6/static-python/actions/workflows/automatic.yml/badge.svg?branch=master&event=push)](https://github.com/sagimor6/static-python/actions/workflows/automatic.yml)
+
 This script is supposed to cross compile a statically linked python 3 or 2.
 The result is a single file that contains python and all its builtin modules.
 

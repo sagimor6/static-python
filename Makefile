@@ -86,6 +86,18 @@ util-linux_VER ?= 2.37.4
 expat_VER ?= 2.5.0
 mpdecimal_VER ?= 2.5.1
 
+ifeq ($(USE_EXTERNAL_EXPAT),y)
+_ADDITIONAL_PY_CONF_FLAGS += --with-system-expat
+_ADDITIONAL_PY_CFLAGS +=
+_ADDITIONAL_EXT_MODS += expat
+endif
+
+ifeq ($(USE_EXTERNAL_MPDECIMAL),y)
+_ADDITIONAL_PY_CONF_FLAGS += --with-system-libmpdec
+_ADDITIONAL_PY_CFLAGS += -fwrapv # python with gcc>=10.3 doesnt compile with fwrapv (by their mistake I think)
+_ADDITIONAL_EXT_MODS += mpdecimal
+endif
+
 _combine = $(word 1, $1).$(word 2, $1)
 util-linux_SHORT_VER ?= $(call _combine, $(subst ., ,$(util-linux_VER)))
 
@@ -243,13 +255,13 @@ $(PY_BUILD_DIR)/made_host_Python-$(Python_VER): $(PY_BUILD_DIR)/made_host_%: %.t
 	)
 	touch $@
 
-$(PY_BUILD_DIR)/modules_to_add: Python-$(Python_VER).tar.xz get_setup_modules.py $(PY_BUILD_DIR)/made_host_Python-$(Python_VER) $(foreach package, openssl bzip2 libffi ncurses readline gdbm sqlite-autoconf xz zlib util-linux expat mpdecimal, $(BUILD_DIR)/made_$(package)-$($(package)_VER))
+$(PY_BUILD_DIR)/modules_to_add: Python-$(Python_VER).tar.xz get_setup_modules.py $(PY_BUILD_DIR)/made_host_Python-$(Python_VER) $(foreach package, openssl bzip2 libffi ncurses readline gdbm sqlite-autoconf xz zlib util-linux $(_ADDITIONAL_EXT_MODS), $(BUILD_DIR)/made_$(package)-$($(package)_VER))
 	(set -e; \
 	mkdir -p $(PY_BUILD_DIR_ABS)/dyn/; \
 	cd $(PY_BUILD_DIR_ABS)/dyn/; \
 	tar -xJf $(SRC_PATH_ABS)/Python-$(Python_VER).tar.xz; \
 	cd Python-*; \
-	LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --with-system-expat --with-system-libmpdec --with-system-ffi --with-dbmliborder=gdbm --with-ensurepip=no --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	mv setup.py setup2.py; \
 	cp $(SRC_PATH_ABS)/get_setup_modules.py setup.py; \
 	MODULE_BLACKLIST="$(MODULE_BLACKLIST)" DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" $(MAKE) sharedmods; \
@@ -262,7 +274,7 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	rm -f Modules/Setup.local; \
 	cp $(PY_BUILD_DIR_ABS)/modules_to_add Modules/Setup.local; \
 	\
-	LINKFORSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-expat --with-system-libmpdec --with-system-ffi --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	\
 	echo "" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
@@ -283,7 +295,7 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	echo "" >> Makefile; \
 	echo "LDFLAGS += -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -static $(OPT_LDFLAGS)" >> Makefile; \
 	echo "" >> Makefile; \
-	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot2/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" EXTRA_CFLAGS="-DCOMPILER=\\\"\\\" -Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ $(OPT_CFLAGS) -fwrapv" $(MAKE) libinstall; \
+	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot2/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" EXTRA_CFLAGS="-DCOMPILER=\\\"\\\" -Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ $(OPT_CFLAGS) $(_ADDITIONAL_PY_CFLAGS)" $(MAKE) libinstall; \
 	)
 	touch $@
 

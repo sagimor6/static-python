@@ -1,14 +1,44 @@
 name: General CI
 
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
+  workflow_call:
+    inputs:
+      arch:
+        type: string
+        required: false
+        description: "CPU Architecture"
+        default: aarch64
+      libc:
+        type: string
+        required: false
+        description: "LIBC name"
+        default: musl
+      python_ver:
+        type: string
+        required: false
+        description: "Python version"
+        default: 3.9.7
+  
   workflow_dispatch:
-    
+    inputs:
+      arch:
+        required: true
+        description: "CPU Architecture"
+        default: aarch64
+      libc:
+        required: true
+        description: "LIBC name"
+        type: choice
+        options:
+          - musl
+          - uclibc
+          - glibc
+        default: musl
+      python_ver:
+        type: string
+        required: true
+        description: "Python version"
+        default: 3.9.7
 
 jobs:
 
@@ -17,7 +47,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build --build-arg=ARCH=aarch64 --build-arg=LIBC=musl --tag static-python-maker .
+      run: docker build --build-arg=ARCH=${{ inputs.arch }} --build-arg=LIBC=${{ inputs.libc }} --build-arg=PYTHON_VER=${{ inputs.python_ver }} --tag static-python-maker .
     - name: Run the Docker image
       run: docker run --name static-python-container static-python-maker
     - name: Get output binary out of docker
@@ -35,9 +65,9 @@ jobs:
       run: sudo apt install -y build-essential zlib1g-dev wget python3 python3-requests
     - uses: actions/checkout@v3
     - name: Get compiler
-      run: python3 bootlin_toolchain_downloader.py aarch64 musl --extract --make_runner
+      run: python3 bootlin_toolchain_downloader.py ${{ inputs.arch }} ${{ inputs.libc }} --extract --make_runner
     - name: Make static python
-      run: ./make_runner.sh -j all
+      run: Python_VER=${{ inputs.python_ver }} ./make_runner.sh -j all
     - name: Upload normal result
       uses: actions/upload-artifact@v3
       with:
@@ -71,5 +101,5 @@ jobs:
         name: static_python_normal
     - run: chmod u+x ./static_python
     - name: Test binary with qemu
-      run: qemu-aarch64-static ./static_python -c 'print("hello")'
+      run: qemu-${{ inputs.arch }}-static ./static_python -c 'print("hello")'
     

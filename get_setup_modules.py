@@ -50,7 +50,7 @@ def get_setup_build_ext():
                 line = [
                     e.name,
                     ' '.join([normalize_path(x) for x in e.sources]),
-                    ' '.join([normalize_path(x) for x in e.extra_objects]),
+                    ' '.join([x for x in e.extra_objects]),
                     ' '.join(['-I' + x for x in e.include_dirs]),
                     ' '.join(['-U' + x for x in e.undef_macros]),
                     ' '.join(['-L' + x for x in e.library_dirs if not x.startswith('/usr/lib')]),
@@ -69,6 +69,8 @@ def get_setup_build_ext():
             
             with open('modules_to_add', 'w') as f:
                 f.write(lines)
+            with open('failed_modules', 'w') as f:
+                f.write(' ,'.join(self.failed))
     
     def setup_fake(*args, **kwargs):
         #print((args, kwargs))

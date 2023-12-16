@@ -6,8 +6,8 @@ MY_CROSS_PREFIX ?= $(MY_CROSS_PATH)/$(MY_CROSS_ARCH)-
 MY_CROSS_OPENSSL_MACHINE ?= $(word 1, $(subst -, ,$(MY_CROSS_ARCH)))
 MY_CROSS_OPENSSL_LONG ?= $(word 3, $(subst -, ,$(MY_CROSS_ARCH)))-$(MY_CROSS_OPENSSL_MACHINE)
 
-OPT_CFLAGS = -ffunction-sections -fdata-sections -flto -fuse-linker-plugin -ffat-lto-objects -Os
-OPT_LDFLAGS = -flto -fuse-linker-plugin -ffat-lto-objects -Wl,--gc-sections -Os -flto-partition=one
+OPT_CFLAGS = -ffunction-sections -fdata-sections -flto -fuse-linker-plugin -ffat-lto-objects -Os -flto=auto
+OPT_LDFLAGS = -flto -flto=auto -fuse-linker-plugin -ffat-lto-objects -Wl,--gc-sections -Os -flto-partition=one
 
 MODULE_BLACKLIST ?=
 
@@ -177,6 +177,8 @@ $(BUILD_DIR)/made_gdbm-$(gdbm_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
 	$(PATH_ENVS) ./configure --host=$(MY_CROSS_ARCH) --enable-libgdbm-compat COMPATINCLUDEDIR=/usr/local/include/gdbm CFLAGS="-Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ -I$(BUILD_DIR_ABS)/fake_root/usr/local/include $(OPT_CFLAGS)" LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib"; \
+	sed -i 's/hardcode_into_libs=yes/hardcode_into_libs=no/g' ./libtool; \
+	sed -i 's/hardcode_automatic=no/hardcode_automatic=yes/g' ./libtool; \
 	$(PATH_ENVS) $(MAKE) install; \
 	)
 	touch $@
@@ -231,7 +233,7 @@ $(BUILD_DIR)/made_libffi-$(libffi_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 $(BUILD_DIR)/made_openssl-$(openssl_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
-	CFLAGS="$(OPT_CFLAGS)" CROSS_COMPILE=$(MY_CROSS_PREFIX) MACHINE=$(MY_CROSS_OPENSSL_MACHINE) RELEASE=5.1 SYSTEM=Linux BUILD=build ./config; \
+	CFLAGS="$(OPT_CFLAGS)" CROSS_COMPILE=$(MY_CROSS_PREFIX) CC=gcc MACHINE=$(MY_CROSS_OPENSSL_MACHINE) RELEASE=5.1 SYSTEM=Linux BUILD=build ./config; \
 	echo "" > crypto/buildinf.h; \
 	echo "#define PLATFORM \"platform: \"" >> crypto/buildinf.h; \
 	echo "#define DATE \"built on: \"" >> crypto/buildinf.h; \

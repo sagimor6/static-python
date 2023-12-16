@@ -8,7 +8,7 @@ import stat
 
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('arch', help='The architecture. E.g: aarch64, x86_64, ...')
+    parser.add_argument('arch', help='The architecture. E.g: aarch64, x86-64, ...')
     parser.add_argument('libc', help='The libc. E.g: musl, glibc, ...')
     parser.add_argument('--date', help='The toolchain date. E.g: 2021.11, 2020.08, ...')
     parser.add_argument('--bleeding', action='store_true', default=False, help='Use bleeding edge toolchain, not the stable one')

@@ -98,6 +98,10 @@ _ADDITIONAL_PY_CFLAGS += -fwrapv # python with gcc>=10.3 doesnt compile with fwr
 _ADDITIONAL_EXT_MODS += mpdecimal
 endif
 
+# TODO: Add option to use wchar in ncurses: --enable-widec
+
+_ADDITIONAL_PY_CONF_FLAGS += --with-pkg-config=no --enable-optimizations=no
+
 _combine = $(word 1, $1).$(word 2, $1)
 util-linux_SHORT_VER ?= $(call _combine, $(subst ., ,$(util-linux_VER)))
 
@@ -264,9 +268,9 @@ $(PY_BUILD_DIR)/modules_to_add: Python-$(Python_VER).tar.xz get_setup_modules.py
 	tar -xJf $(SRC_PATH_ABS)/Python-$(Python_VER).tar.xz; \
 	cd Python-*; \
 	LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
-	mv setup.py setup2.py; \
-	cp $(SRC_PATH_ABS)/get_setup_modules.py setup.py; \
+	[ ! -f setup.py ] || (mv setup.py setup2.py && cp $(SRC_PATH_ABS)/get_setup_modules.py setup.py); \
 	MODULE_BLACKLIST="$(MODULE_BLACKLIST)" DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" $(MAKE) sharedmods; \
+	[ -f modules_to_add ] || (echo "*disabled*" > modules_to_add && echo "$(MODULE_BLACKLIST)" >> modules_to_add); \
 	cp modules_to_add $(SRC_PATH_ABS)/$@; \
 	)
 
@@ -275,8 +279,9 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	cd $(PY_BUILD_DIR)/$*; \
 	rm -f Modules/Setup.local; \
 	cp $(PY_BUILD_DIR_ABS)/modules_to_add Modules/Setup.local; \
+	[ ! -f Modules/Setup.stdlib.in ] || sed -i 's/^\*shared\*$$/*disabled*/g' Modules/Setup.stdlib.in; \
 	\
-	LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	\
 	echo "" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \

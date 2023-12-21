@@ -36,6 +36,9 @@ def get_setup_build_ext():
                     else:
                         exts.append(e)
                 self.extensions = exts
+
+            for e in self.extensions:
+                e.library_dirs = [x for x in e.library_dirs if not x.startswith('/usr/lib')]
             
             build_ext.build_extensions(self)
             
@@ -53,7 +56,7 @@ def get_setup_build_ext():
                     ' '.join([x for x in e.extra_objects]),
                     ' '.join(['-I' + x for x in e.include_dirs]),
                     ' '.join(['-U' + x for x in e.undef_macros]),
-                    ' '.join(['-L' + x for x in e.library_dirs if not x.startswith('/usr/lib')]),
+                    ' '.join(['-L' + x for x in e.library_dirs]),
                     ' '.join(['-l' + x for x in e.libraries]),
                     ' '.join([x for x in e.extra_link_args]),
                     '-D$(__' + e.name + '_DEFS)' if len(defines_and_flags) != 0 else ''

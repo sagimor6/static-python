@@ -294,7 +294,7 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	echo "" >> Modules/errnomodule.c; \
 	echo "#include <stdlib.h>" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
-	echo "static void __attribute__((constructor)) my_pythonhome_ctor() {" >> Modules/errnomodule.c; \
+	echo "static void __attribute__((constructor)) my_pythonhome_ctor(void) {" >> Modules/errnomodule.c; \
 	echo "	if (getenv(\"PYTHONHOME\") == NULL) {" >> Modules/errnomodule.c; \
 	echo "		putenv(\"PYTHONHOME=/proc/self/exe\");" >> Modules/errnomodule.c; \
 	echo "	}" >> Modules/errnomodule.c; \

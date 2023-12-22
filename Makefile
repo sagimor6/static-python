@@ -98,6 +98,13 @@ _ADDITIONAL_PY_CFLAGS += -fwrapv # python with gcc>=10.3 doesnt compile with fwr
 _ADDITIONAL_EXT_MODS += mpdecimal
 endif
 
+ifeq ($(USE_NCURSES_WIDE_CHAR), y)
+_NCURSES_LIB =ncursesw
+_NCURSES_EXT_CONF_FLAGS += --enable-widec
+else
+_NCURSES_LIB =ncurses
+endif
+
 # TODO: Add option to use wchar in ncurses: --enable-widec
 
 _ADDITIONAL_PY_CONF_FLAGS += --with-pkg-config=no --enable-optimizations=no
@@ -163,7 +170,7 @@ $(BUILD_DIR)/made_sqlite-autoconf-$(sqlite-autoconf_VER): $(BUILD_DIR)/made_%: $
 $(BUILD_DIR)/made_ncurses-$(ncurses_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
-	PATH="$$PATH:$(MY_CROSS_PATH)" CFLAGS="$(OPT_CFLAGS)" LDFLAGS="-fPIC" ./configure --host=$(MY_CROSS_ARCH) INSTALL="/usr/bin/install -c --strip-program=$(MY_CROSS_PREFIX)strip" --with-shared --disable-database --disable-termcap --with-fallbacks="dumb,vt100,linux,xterm-256color,vt400,xterm,putty,xterm-16color,xterm-88color,rxvt,putty-256color,konsole,screen" --prefix=/usr/local --disable-db-install --without-manpages --without-progs --without-tack --without-tests; \
+	PATH="$$PATH:$(MY_CROSS_PATH)" CFLAGS="$(OPT_CFLAGS)" LDFLAGS="-fPIC" ./configure --host=$(MY_CROSS_ARCH) INSTALL="/usr/bin/install -c --strip-program=$(MY_CROSS_PREFIX)strip" --with-shared --disable-database --disable-termcap --with-fallbacks="dumb,vt100,linux,xterm-256color,vt400,xterm,putty,xterm-16color,xterm-88color,rxvt,putty-256color,konsole,screen" --prefix=/usr/local --disable-db-install --without-manpages --without-progs --without-tack --without-tests $(_NCURSES_EXT_CONF_FLAGS); \
 	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) all DESTDIR="$(BUILD_DIR_ABS)/fake_root"; \
 	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) install DESTDIR="$(BUILD_DIR_ABS)/fake_root"; \
 	)
@@ -173,7 +180,7 @@ $(BUILD_DIR)/made_readline-$(readline_VER): $(BUILD_DIR)/made_%: $(BUILD_DIR)/%/
 	(set -e; \
 	cd $(BUILD_DIR)/$*; \
 	PATH="$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) CFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include $(OPT_CFLAGS)" LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -fPIC"; \
-	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) install DESTDIR="$(BUILD_DIR_ABS)/fake_root" MFLAGS="SHLIB_LIBS=\"-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -lncurses\""; \
+	PATH="$$PATH:$(MY_CROSS_PATH)" $(MAKE) install DESTDIR="$(BUILD_DIR_ABS)/fake_root" MFLAGS="SHLIB_LIBS=\"-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -l$(_NCURSES_LIB)\""; \
 	)
 	touch $@
 
@@ -267,7 +274,7 @@ $(PY_BUILD_DIR)/modules_to_add: Python-$(Python_VER).tar.xz get_setup_modules.py
 	cd $(PY_BUILD_DIR_ABS)/dyn/; \
 	tar -xJf $(SRC_PATH_ABS)/Python-$(Python_VER).tar.xz; \
 	cd Python-*; \
-	LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/$(_NCURSES_LIB) -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	[ ! -f setup.py ] || (mv setup.py setup2.py && cp $(SRC_PATH_ABS)/get_setup_modules.py setup.py); \
 	MODULE_BLACKLIST="$(MODULE_BLACKLIST)" DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" $(MAKE) sharedmods; \
 	[ -f modules_to_add ] || (echo "*disabled*" > modules_to_add && echo "$(MODULE_BLACKLIST)" >> modules_to_add); \
@@ -281,7 +288,7 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	cp $(PY_BUILD_DIR_ABS)/modules_to_add Modules/Setup.local; \
 	[ ! -f Modules/Setup.stdlib.in ] || sed -i 's/^\*shared\*$$/*disabled*/g' Modules/Setup.stdlib.in; \
 	\
-	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/ncurses -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/$(_NCURSES_LIB) -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	\
 	echo "" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \

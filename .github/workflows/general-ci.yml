@@ -18,6 +18,11 @@ on:
         required: false
         description: "Python version"
         default: 3.9.7
+      create_release:
+        type: boolean
+        required: true
+        description: "Whether to create a release"
+        default: false
   
   workflow_dispatch:
     inputs:
@@ -39,6 +44,11 @@ on:
         required: true
         description: "Python version"
         default: 3.9.7
+      create_release:
+        type: boolean
+        required: true
+        description: "Whether to create a release"
+        default: false
 
 jobs:
 
@@ -102,4 +112,34 @@ jobs:
     - run: chmod u+x ./static_python
     - name: Test binary with qemu
       run: qemu-${{ inputs.arch }}-static ./static_python -c 'print("hello")'
+
+  release_binaries:
+    if: ${{ inputs.create_release }}
+    runs-on: ubuntu-latest
+    needs: [test_python, build_normal]
+    name: Create Release
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: static_python_normal
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Static python ${{ inputs.python_ver }} for ${{ inputs.arch }}-${{ inputs.libc }}
+        draft: false
+        prerelease: true
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./static_python
+        asset_name: static_python_${{ inputs.python_ver }}-${{ inputs.arch }}-${{ inputs.libc }}
+        asset_content_type: application/octet-stream
     

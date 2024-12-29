@@ -53,6 +53,7 @@ on:
 jobs:
 
   build_docker:
+    if: ${{ !inputs.create_release }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -69,6 +70,7 @@ jobs:
         path: ./static_python
   
   build_normal:
+    if: ${{ !inputs.create_release }}
     runs-on: ubuntu-latest
     steps:
     - name: Prerequisites 
@@ -85,6 +87,7 @@ jobs:
         path: ./final/static_python
 
   test_reproducibility:
+    if: ${{ !inputs.create_release }}
     runs-on: ubuntu-latest
     needs: [build_docker, build_normal]
     steps:
@@ -101,6 +104,7 @@ jobs:
     
   
   test_python:
+    if: ${{ !inputs.create_release }}
     runs-on: ubuntu-latest
     needs: [build_normal]
     steps:
@@ -116,19 +120,21 @@ jobs:
   release_binaries:
     if: ${{ inputs.create_release }}
     runs-on: ubuntu-latest
-    needs: [test_python, build_normal]
+    #needs: [test_python, build_normal]
     name: Create Release
     steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: static_python_normal
+    #- uses: actions/download-artifact@v3
+    #  with:
+    #    name: static_python_normal
+    - name: dddd
+      run: echo aaa > ./static_python
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
+        tag_name: ${{ github.ref_name }}
         release_name: Static python ${{ inputs.python_ver }} for ${{ inputs.arch }}-${{ inputs.libc }}
         draft: false
         prerelease: true

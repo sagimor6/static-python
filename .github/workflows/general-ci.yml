@@ -20,7 +20,7 @@ on:
         default: 3.9.7
       create_release:
         type: boolean
-        required: true
+        required: false
         description: "Whether to create a release"
         default: false
   

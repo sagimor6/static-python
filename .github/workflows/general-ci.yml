@@ -47,7 +47,7 @@ on:
       create_release:
         type: boolean
         required: true
-        description: "Whether to create a release"
+        description: "Publish release"
         default: false
 
 jobs:

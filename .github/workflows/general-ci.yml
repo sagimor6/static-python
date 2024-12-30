@@ -21,7 +21,7 @@ on:
       create_release:
         type: boolean
         required: false
-        description: "Whether to create a release"
+        description: "Publish release"
         default: false
   
   workflow_dispatch:
@@ -79,7 +79,7 @@ jobs:
     - name: Make static python
       run: Python_VER=${{ inputs.python_ver }} ./make_runner.sh -j all
     - name: Upload normal result
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: static_python_normal
         path: ./final/static_python
@@ -88,11 +88,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_docker, build_normal]
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static_python_docker
         path: docker/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static_python_normal
         path: normal/
@@ -106,7 +106,7 @@ jobs:
     steps:
     - name: Prerequisites 
       run: sudo apt install -y qemu-user-static
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static_python_normal
     - run: chmod u+x ./static_python
@@ -116,10 +116,10 @@ jobs:
   release_binaries:
     if: ${{ inputs.create_release }}
     runs-on: ubuntu-latest
-    needs: [test_python, build_normal]
+    needs: [test_python, test_reproducibility, build_normal]
     name: Create Release
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static_python_normal
     - name: Create Release

@@ -63,7 +63,7 @@ jobs:
     - name: Get output binary out of docker
       run: docker cp static-python-container:/app/final/static_python .
     - name: Upload docker result
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: static_python_docker
         path: ./static_python

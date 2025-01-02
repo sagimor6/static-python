@@ -106,6 +106,7 @@ def get_setup_build_ext():
     setup2.setup = setup_fake
     setup2.build_ext = MyBuildExt
     setup2.sysconfig.get_config_var = sysconfig_get_config_var
+    setup2.find_executable = lambda x: None
     
     if hasattr(setup2, 'COMPILED_WITH_PYDEBUG'):
         setup2.COMPILED_WITH_PYDEBUG = True

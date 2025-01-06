@@ -28,6 +28,14 @@ BUILD_DIR_ABS=$(SRC_PATH_ABS)/$(BUILD_DIR)
 PY_BUILD_DIR=$(BUILD_DIR)/pybuild_$(Python_VER)
 PY_BUILD_DIR_ABS=$(SRC_PATH_ABS)/$(PY_BUILD_DIR)
 
+ifeq ($(ONLY_TEST_BUILD),y)
+FINAL_PYTHONHOME_PATH=$(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local
+DO_ON_RELEASE := :
+else
+FINAL_PYTHONHOME_PATH=/proc/self/exe
+DO_ON_RELEASE :=
+endif
+
 .PHONY: clean distclean download bla all
 clean:
 	-rm -rf $(BUILD_DIR) $(OUTPUT_DIR)
@@ -286,9 +294,11 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	cd $(PY_BUILD_DIR)/$*; \
 	rm -f Modules/Setup.local; \
 	cp $(PY_BUILD_DIR_ABS)/modules_to_add Modules/Setup.local; \
+	[ ! -f Modules/Setup ] || for mod in $(MODULE_BLACKLIST); do sed -i "s/^$$mod\\s.*//g" Modules/Setup; done; \
+	[ ! -f Modules/Setup.bootstrap.in ] || for mod in $(MODULE_BLACKLIST); do sed -i "s/^$$mod\\s.*//g" Modules/Setup.bootstrap.in; done; \
 	[ ! -f Modules/Setup.stdlib.in ] || sed -i 's/^\*shared\*$$/*disabled*/g' Modules/Setup.stdlib.in; \
 	\
-	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/$(_NCURSES_LIB) -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ac_cv_working_tzset=yes ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/$(_NCURSES_LIB) -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
 	\
 	echo "" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
@@ -296,44 +306,54 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	echo "" >> Modules/errnomodule.c; \
 	echo "static void __attribute__((constructor)) my_pythonhome_ctor(void) {" >> Modules/errnomodule.c; \
 	echo "	if (getenv(\"PYTHONHOME\") == NULL) {" >> Modules/errnomodule.c; \
-	echo "		putenv(\"PYTHONHOME=/proc/self/exe\");" >> Modules/errnomodule.c; \
+	echo "#if PY_VERSION_HEX >= 0x030000a5" >> Modules/errnomodule.c; \
+	echo "#define PYTHON_WCHAR(str) L##str" >> Modules/errnomodule.c; \
+	echo "#else" >> Modules/errnomodule.c; \
+	echo "#define PYTHON_WCHAR(str) str" >> Modules/errnomodule.c; \
+	echo "#endif" >> Modules/errnomodule.c; \
+	echo "		Py_SetPythonHome(PYTHON_WCHAR(\"$(FINAL_PYTHONHOME_PATH)\"));" >> Modules/errnomodule.c; \
 	echo "	}" >> Modules/errnomodule.c; \
 	echo "}" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
 	if [ -f ./Lib/plat-generic/regen ]; then \
 	echo "#!/bin/sh" > ./Lib/plat-generic/regen; \
-	echo "" > ./Lib/plat-generic/regen; \
+	echo "" >> ./Lib/plat-generic/regen; \
 	fi; \
 	mkdir $(PY_BUILD_DIR_ABS)/pyfakeroot2/ || true; \
 	echo "" >> Makefile; \
 	echo "LDFLAGS += -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -static $(OPT_LDFLAGS) $(_ADDITIONAL_PY_LDFLAGS)" >> Makefile; \
 	echo "" >> Makefile; \
-	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot2/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" EXTRA_CFLAGS="-DCOMPILER=\\\"\\\" -Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ $(OPT_CFLAGS) $(_ADDITIONAL_PY_CFLAGS)" $(MAKE) libinstall; \
+	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot2/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" EXTRA_CFLAGS="-DCOMPILER=\\\"[C]\\\" -DDATE=\\\"xx_xx_xx\\\" -Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ $(OPT_CFLAGS) $(_ADDITIONAL_PY_CFLAGS)" $(MAKE) libinstall; \
 	)
 	touch $@
 
 $(PY_BUILD_DIR)/python-stripped: $(PY_BUILD_DIR)/made_Python-$(Python_VER)
 	$(MY_CROSS_PREFIX)objcopy -R .comment -R '.comment.*' -R .note -R '.note.*' -S $(PY_BUILD_DIR)/Python-$(Python_VER)/python $(SRC_PATH_ABS)/$@
 
+# build_time_vars = {'TZPATH': '', 'CC': 'cc', 'AR': 'ar', 'ARFLAGS': 'rcs', 'CFLAGS': '', 'LDFLAGS': '', 'CCSHARED': '-fPIC', 'LDSHARED': '-shared', 'EXT_SUFFIX': '.cpython-.so'}
+# SOABI="cpython-"
+# MULTIARCH in configure
+# PLATFORM_TRIPLET in configure
+
 $(PY_BUILD_DIR)/python_lib.zip: $(PY_BUILD_DIR)/made_Python-$(Python_VER) zipper.py
 	(set -e; cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/; make -f $(PY_BUILD_DIR_ABS)/Python-$(Python_VER)/Makefile pycremoval)
 	(set -e; \
 	cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/*/*; \
-	rm -r test/ || true; \
-	rm -r lib2to3/tests/ || true; \
-	rm -r unittest/test/ || true; \
-	rm -r ctypes/test/ || true; \
-	rm -r distutils/tests/ || true; \
-	rm -r tkinter/test/ || true; \
-	rm -r idlelib/idle_test/ || true; \
-	rm -r sqlite3/test/ || true; \
-	rm -r ensurepip/ || true; \
-	rm -r email/test || true; \
-	rm -r json/tests || true; \
-	rm -r bsddb/test || true; \
-	rm -r lib-tk/test || true; \
-	rm lib2to3/*Grammar*.pickle || true; \
+	$(DO_ON_RELEASE) rm -r test/ || true; \
+	$(DO_ON_RELEASE) rm -r lib2to3/tests/ || true; \
+	$(DO_ON_RELEASE) rm -r unittest/test/ || true; \
+	$(DO_ON_RELEASE) rm -r ctypes/test/ || true; \
+	$(DO_ON_RELEASE) rm -r distutils/tests/ || true; \
+	$(DO_ON_RELEASE) rm -r tkinter/test/ || true; \
+	$(DO_ON_RELEASE) rm -r idlelib/idle_test/ || true; \
+	$(DO_ON_RELEASE) rm -r sqlite3/test/ || true; \
+	$(DO_ON_RELEASE) rm -r ensurepip/ || true; \
+	$(DO_ON_RELEASE) rm -r email/test || true; \
+	$(DO_ON_RELEASE) rm -r json/tests || true; \
+	$(DO_ON_RELEASE) rm -r bsddb/test || true; \
+	$(DO_ON_RELEASE) rm -r lib-tk/test || true; \
+	$(DO_ON_RELEASE) rm lib2to3/*Grammar*.pickle || true; \
 	if [ -f _sysconfigdata*.py ]; then \
 	echo "# system configuration generated and used by the sysconfig module" > $$(echo _sysconfigdata*.py); \
 	echo "build_time_vars = {'TZPATH': ''}" >> $$(echo _sysconfigdata*.py); \

@@ -324,7 +324,7 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	echo "" >> Makefile; \
 	echo "LDFLAGS += -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -static $(OPT_LDFLAGS) $(_ADDITIONAL_PY_LDFLAGS)" >> Makefile; \
 	echo "" >> Makefile; \
-	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot2/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" EXTRA_CFLAGS="-DCOMPILER=\\\"[C]\\\" -DDATE=\\\"xx_xx_xx\\\" -Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ $(OPT_CFLAGS) $(_ADDITIONAL_PY_CFLAGS)" $(MAKE) libinstall; \
+	DESTDIR=$(PY_BUILD_DIR_ABS)/pyfakeroot2/ PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" EXTRA_CFLAGS="-DCOMPILER=\\\"[C]\\\" -DDATE=\\\"xx_xx_xx\\\" -Wno-builtin-macro-redefined -U__DATE__ -U__TIME__ $(OPT_CFLAGS) $(_ADDITIONAL_PY_CFLAGS)" $(MAKE) libinstall SOABI="cpython-" MULTIARCH="" MULTIARCH_CPPFLAGS="" ; \
 	)
 	touch $@
 
@@ -337,9 +337,9 @@ $(PY_BUILD_DIR)/python-stripped: $(PY_BUILD_DIR)/made_Python-$(Python_VER)
 # PLATFORM_TRIPLET in configure
 
 $(PY_BUILD_DIR)/python_lib.zip: $(PY_BUILD_DIR)/made_Python-$(Python_VER) zipper.py
-	(set -e; cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/; make -f $(PY_BUILD_DIR_ABS)/Python-$(Python_VER)/Makefile pycremoval)
+	(set -e; cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/; make -f $(PY_BUILD_DIR_ABS)/Python-$(Python_VER)/Makefile pycremoval SO_ABI="cpython-" MULTIARCH="" MULTIARCH_CPPFLAGS="")
 	(set -e; \
-	cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/*/*; \
+	cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/lib*/*; \
 	$(DO_ON_RELEASE) rm -r test/ || true; \
 	$(DO_ON_RELEASE) rm -r lib2to3/tests/ || true; \
 	$(DO_ON_RELEASE) rm -r unittest/test/ || true; \
@@ -355,12 +355,11 @@ $(PY_BUILD_DIR)/python_lib.zip: $(PY_BUILD_DIR)/made_Python-$(Python_VER) zipper
 	$(DO_ON_RELEASE) rm -r lib-tk/test || true; \
 	$(DO_ON_RELEASE) rm lib2to3/*Grammar*.pickle || true; \
 	if [ -f _sysconfigdata*.py ]; then \
-	echo "# system configuration generated and used by the sysconfig module" > $$(echo _sysconfigdata*.py); \
-	echo "build_time_vars = {'TZPATH': ''}" >> $$(echo _sysconfigdata*.py); \
+	PYTHONHOME=$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local $(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin/python[0-9] $(SRC_PATH_ABS)/sysconfig_filter.py; \
 	fi; \
 	)
 	# fixup ctypes to load
-	sed -i 's/pythonapi = PyDLL(None)/pythonapi = None/g' $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/*/*/ctypes/__init__.py || true
+	sed -i 's/pythonapi = PyDLL(None)/pythonapi = None/g' $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/lib*/*/ctypes/__init__.py || true
 	PYTHONHOME=$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local $(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin/python[0-9] $(SRC_PATH_ABS)/zipper.py $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local $(SRC_PATH_ABS)/$@
 
 $(PY_BUILD_DIR)/static_python: $(PY_BUILD_DIR)/python-stripped $(PY_BUILD_DIR)/python_lib.zip

@@ -9,6 +9,7 @@ COPY Makefile .
 COPY zipper.py .
 COPY get_setup_modules.py .
 COPY bootlin_toolchain_downloader.py .
+COPY sysconfig_filter.py .
 
 ARG ARCH
 ARG LIBC

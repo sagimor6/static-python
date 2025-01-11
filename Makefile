@@ -298,14 +298,17 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 	[ ! -f Modules/Setup.bootstrap.in ] || for mod in $(MODULE_BLACKLIST); do sed -i "s/^$$mod\\s.*//g" Modules/Setup.bootstrap.in; done; \
 	[ ! -f Modules/Setup.stdlib.in ] || sed -i 's/^\*shared\*$$/*disabled*/g' Modules/Setup.stdlib.in; \
 	\
-	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ac_cv_working_tzset=yes ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/$(_NCURSES_LIB) -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid"; \
+	EXTRA_CONFIG_FLAGS=$$(CROSS_PREFIX="$(MY_CROSS_PREFIX)" PYTHONHOME="$(PY_BUILD_DIR_ABS)"/pyfakeroot/usr/local "$(PY_BUILD_DIR_ABS)"/pyfakeroot/usr/local/bin/python[0-9] $(SRC_PATH_ABS)/configure_cross_flags.py); \
+	\
+	MODULE_BUILDTYPE=static LINKFORSHARED=" " CCSHARED=" " LDFLAGS="-L$(BUILD_DIR_ABS)/fake_root/usr/local/lib -Wl,-rpath-link,$(BUILD_DIR_ABS)/fake_root/usr/local/lib" PATH="$(PY_BUILD_DIR_ABS)/pyfakeroot/usr/local/bin:$$PATH:$(MY_CROSS_PATH)" ./configure --host=$(MY_CROSS_ARCH) --build=x86_64-pc-linux-gnu --enable-ipv6 --enable-optimizations --with-lto --with-system-ffi $(_ADDITIONAL_PY_CONF_FLAGS) --with-dbmliborder=gdbm --with-ensurepip=no --disable-shared --with-tzpath="" --with-build-python=yes --with-openssl=$(BUILD_DIR_ABS)/fake_root/usr/local ac_cv_file__dev_ptmx=no ac_cv_file__dev_ptc=no LIBFFI_INCLUDEDIR=$(BUILD_DIR_ABS)/fake_root/usr/local/include CPPFLAGS="-I$(BUILD_DIR_ABS)/fake_root/usr/local/include -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/$(_NCURSES_LIB) -I$(BUILD_DIR_ABS)/fake_root/usr/local/include/uuid" $$EXTRA_CONFIG_FLAGS; \
 	\
 	echo "" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
 	echo "#include <stdlib.h>" >> Modules/errnomodule.c; \
 	echo "" >> Modules/errnomodule.c; \
 	echo "static void __attribute__((constructor)) my_pythonhome_ctor(void) {" >> Modules/errnomodule.c; \
-	echo "	if (getenv(\"PYTHONHOME\") == NULL) {" >> Modules/errnomodule.c; \
+	echo "	const char* pythonhome_env = getenv(\"PYTHONHOME\");" >> Modules/errnomodule.c; \
+	echo "	if (pythonhome_env == NULL || pythonhome_env[0] == '\\0') {" >> Modules/errnomodule.c; \
 	echo "#if PY_VERSION_HEX >= 0x030000a5" >> Modules/errnomodule.c; \
 	echo "#define PYTHON_WCHAR(str) L##str" >> Modules/errnomodule.c; \
 	echo "#else" >> Modules/errnomodule.c; \
@@ -337,7 +340,7 @@ $(PY_BUILD_DIR)/python-stripped: $(PY_BUILD_DIR)/made_Python-$(Python_VER)
 # PLATFORM_TRIPLET in configure
 
 $(PY_BUILD_DIR)/python_lib.zip: $(PY_BUILD_DIR)/made_Python-$(Python_VER) zipper.py
-	(set -e; cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/; make -f $(PY_BUILD_DIR_ABS)/Python-$(Python_VER)/Makefile pycremoval SO_ABI="cpython-" MULTIARCH="" MULTIARCH_CPPFLAGS="")
+	(set -e; cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/; make -f $(PY_BUILD_DIR_ABS)/Python-$(Python_VER)/Makefile pycremoval SOABI="cpython-" MULTIARCH="" MULTIARCH_CPPFLAGS="")
 	(set -e; \
 	cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/usr/local/lib*/*; \
 	$(DO_ON_RELEASE) rm -r test/ || true; \

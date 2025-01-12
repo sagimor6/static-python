@@ -10,6 +10,7 @@ COPY zipper.py .
 COPY get_setup_modules.py .
 COPY bootlin_toolchain_downloader.py .
 COPY sysconfig_filter.py .
+COPY configure_cross_flags.py .
 
 ARG ARCH
 ARG LIBC

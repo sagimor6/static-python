@@ -6,16 +6,66 @@ on:
 
 jobs:
   
-  build_normal:
+  test_python3_9_7:
     runs-on: ubuntu-latest
     steps:
     - name: Prerequisites 
-      run: sudo apt install -y build-essential zlib1g-dev wget python3 python3-requests
+      run: sudo apt install -y build-essential zlib1g-dev wget
     - uses: actions/checkout@v3
     - name: Get compiler
-      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tmp_tag/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
     - name: Make static python
       run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=3.9.7 make -j all
     - name: Run tests
-      run: ./final/static_python -E -m test -uall -i test.test_capi.Test_ModuleStateAccess.* -i test.test_imp.ImportTests.*_module* -i test.test_import.ImportTests.test_from_import_missing_attr_has_name_and_so_path -i test.test_importlib.extension.test_loader.* -i test.test_importlib.extension.test_finder.*_FinderTests.test_module -i test.test_email.test_utils.LocaltimeTests.test_variable_tzname
+      run: >
+        ./final/static_python -E -m test -uall
+        -i test.test_capi.Test_ModuleStateAccess.*
+        -i test.test_imp.ImportTests.*_module*
+        -i test.test_import.ImportTests.test_from_import_missing_attr_has_name_and_so_path
+        -i test.test_importlib.extension.test_loader.*
+        -i test.test_importlib.extension.test_finder.*_FinderTests.test_module
+        -i test.test_email.test_utils.LocaltimeTests.test_variable_tzname
+        -i test.test_urllib2.MiscTests.test_issue16464
 
+  test_python3_13_1:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Prerequisites 
+      run: sudo apt install -y build-essential zlib1g-dev wget
+    - uses: actions/checkout@v3
+    - name: Get compiler
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+    - name: Make static python
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=3.13.1 make -j all
+    - name: Run tests
+      run: >
+        ./final/static_python -E -m test -uall
+        -i test.datetimetester.CapiTest_Fast.test_type_check_in_subinterp.test_type_check_in_subinterp
+        -i test_embed.*
+        -i test.test_site._pthFileTests.test_underpth_basic.test_underpth_basic
+        -i test.test_site._pthFileTests.test_underpth_file.test_underpth_file
+        -i test.test_site._pthFileTests.test_underpth_nosite_file.test_underpth_nosite_file
+        -i test_tools.*
+        -i test.test_venv.BasicTest.test_sysconfig.test_sysconfig
+        -i test.test_venv.BasicTest.test_zippath_from_non_installed_posix.test_zippath_from_non_installed_posix
+
+  test_python2_7_18:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Prerequisites 
+      run: sudo apt install -y build-essential zlib1g-dev wget
+    - uses: actions/checkout@v3
+    - name: Get compiler
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+    - name: Make static python
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=2.7.18 make -j all
+    - name: Run tests
+      run: >
+        ./final/static_python -E -m test -uall -x
+        test.test_curses.TestCurses.test_colors_funcs
+        test.test_ssl.NetworkedTests.test_context_setget
+        distutils.tests.test_build_clib.BuildCLibTestCase.test_run
+        distutils.tests.test_build_ext.BuildExtTestCase.test_build_ext
+        distutils.tests.test_build_ext.BuildExtTestCase.test_get_outputs
+        distutils.tests.test_config_cmd.ConfigTestCase.test_search_cpp
+        distutils.tests.test_install.InstallTestCase.test_record_extensions

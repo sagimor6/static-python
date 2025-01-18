@@ -10,5 +10,7 @@ on:
       - '**'
 
 jobs:
-  run_ci:
+  run_compile_ci:
     uses: ./.github/workflows/general-ci.yml
+  run_test_ci:
+    uses: ./.github/workflows/test.yml

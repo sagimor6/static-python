@@ -106,7 +106,7 @@ _ADDITIONAL_PY_CFLAGS += -fwrapv # python with gcc>=10.3 doesnt compile with fwr
 _ADDITIONAL_EXT_MODS += mpdecimal
 endif
 
-ifeq ($(USE_NCURSES_WIDE_CHAR), y)
+ifneq ($(DISABLE_NCURSES_WIDE_CHAR), y)
 _NCURSES_LIB =ncursesw
 _NCURSES_EXT_CONF_FLAGS += --enable-widec
 else
@@ -333,11 +333,6 @@ $(PY_BUILD_DIR)/made_Python-$(Python_VER): $(PY_BUILD_DIR)/made_%: $(PY_BUILD_DI
 
 $(PY_BUILD_DIR)/python-stripped: $(PY_BUILD_DIR)/made_Python-$(Python_VER)
 	$(MY_CROSS_PREFIX)objcopy -R .comment -R '.comment.*' -R .note -R '.note.*' -S $(PY_BUILD_DIR)/Python-$(Python_VER)/python $(SRC_PATH_ABS)/$@
-
-# build_time_vars = {'TZPATH': '', 'CC': 'cc', 'AR': 'ar', 'ARFLAGS': 'rcs', 'CFLAGS': '', 'LDFLAGS': '', 'CCSHARED': '-fPIC', 'LDSHARED': '-shared', 'EXT_SUFFIX': '.cpython-.so'}
-# SOABI="cpython-"
-# MULTIARCH in configure
-# PLATFORM_TRIPLET in configure
 
 $(PY_BUILD_DIR)/python_lib.zip: $(PY_BUILD_DIR)/made_Python-$(Python_VER) zipper.py
 	(set -e; cd $(PY_BUILD_DIR_ABS)/pyfakeroot2/; make -f $(PY_BUILD_DIR_ABS)/Python-$(Python_VER)/Makefile pycremoval SOABI="cpython-" MULTIARCH="" MULTIARCH_CPPFLAGS="")

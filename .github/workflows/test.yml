@@ -15,7 +15,7 @@ jobs:
     - name: Get compiler
       run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
     - name: Make static python
-      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=3.9.7 make -j all
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y Python_VER=3.9.7 make -j all
     - name: Run tests
       run: >
         ./final/static_python -E -m test -uall
@@ -36,7 +36,7 @@ jobs:
     - name: Get compiler
       run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
     - name: Make static python
-      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=3.13.1 make -j all
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y Python_VER=3.13.1 make -j all
     - name: Run tests
       run: >
         ./final/static_python -E -m test -uall
@@ -58,7 +58,7 @@ jobs:
     - name: Get compiler
       run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
     - name: Make static python
-      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=2.7.18 make -j all
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y Python_VER=2.7.18 make -j all
     - name: Run tests
       run: >
         ./final/static_python -E -m test -uall -x test_ssl test_curses test_distutils

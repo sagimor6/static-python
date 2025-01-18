@@ -5,7 +5,100 @@ on:
   workflow_dispatch:
 
 jobs:
-  aaaa:
+  test_python3_9_7:
     runs-on: ubuntu-latest
     steps:
-    - run: echo hello
+    - name: Prerequisites 
+      run: sudo apt install -y build-essential zlib1g-dev wget
+    - uses: actions/checkout@v3
+    - name: Get compiler
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+    - name: Make static python
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y Python_VER=3.9.7 make -j all
+    - name: Run tests
+      run: >
+        ./final/static_python -E -m test -uall
+        -i test.test_capi.Test_ModuleStateAccess.*
+        -i test.test_imp.ImportTests.*_module*
+        -i test.test_import.ImportTests.test_from_import_missing_attr_has_name_and_so_path
+        -i test.test_importlib.extension.test_loader.*
+        -i test.test_importlib.extension.test_finder.*_FinderTests.test_module
+        -i test.test_email.test_utils.LocaltimeTests.test_variable_tzname
+        -i test.test_urllib2.MiscTests.test_issue16464
+
+  test_python3_13_1:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Prerequisites 
+      run: sudo apt install -y build-essential zlib1g-dev wget
+    - uses: actions/checkout@v3
+    - name: Get compiler
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+    - name: Make static python
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y Python_VER=3.13.1 make -j all
+    - name: Run tests
+      run: >
+        ./final/static_python -E -m test -uall
+        -i test.datetimetester.CapiTest_Fast.test_type_check_in_subinterp
+        -i test.test_embed.*
+        -i test.test_site._pthFileTests.test_underpth_basic
+        -i test.test_site._pthFileTests.test_underpth_file
+        -i test.test_site._pthFileTests.test_underpth_nosite_file
+        -i test.test_tools.*
+        -i test.test_venv.BasicTest.test_sysconfig
+        -i test.test_venv.BasicTest.test_zippath_from_non_installed_posix
+
+  test_python2_7_18:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Prerequisites 
+      run: sudo apt install -y build-essential zlib1g-dev wget
+    - uses: actions/checkout@v3
+    - name: Get compiler
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tag_20250118014933284391032/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+    - name: Make static python
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y Python_VER=2.7.18 make -j all
+    - name: Run tests
+      run: >
+        ./final/static_python -E -m test -uall -x test_ssl test_curses test_distutils
+    - name: Run tests ssl
+      run: >
+        ./final/static_python -E -m test -uall
+        -m 'test.test_ssl.[!N]*'
+        -m 'test.test_ssl.NetworkedTests.test_[!c]*'
+        -m 'test.test_ssl.NetworkedTests.test_c[!o]*'
+        -m 'test.test_ssl.NetworkedTests.test_co[!n]*'
+        -m 'test.test_ssl.NetworkedTests.test_con[!t]*'
+        test_ssl
+    - name: Run tests distutils
+      run: >
+        ./final/static_python -E -m test -uall
+        -m 'distutils.tests.test_[!bci]*'
+        -m 'distutils.tests.test_b[!u]*'
+        -m 'distutils.tests.test_build.*'
+        -m 'distutils.tests.test_build_[!ce]*'
+        -m 'distutils.tests.test_build_clib.[!B]*'
+        -m 'distutils.tests.test_build_clib.BuildCLibTestCase.test_[!r]*'
+        -m 'distutils.tests.test_build_ext.[!B]*'
+        -m 'distutils.tests.test_build_ext.BuildExtTestCase.test_[!bg]*'
+        -m 'distutils.tests.test_build_ext.BuildExtTestCase.test_build_ext_*'
+        -m 'distutils.tests.test_build_ext.BuildExtTestCase.test_get_[!o]*'
+        -m 'distutils.tests.test_c[!o]*'
+        -m 'distutils.tests.test_co[!n]*'
+        -m 'distutils.tests.test_config.*'
+        -m 'distutils.tests.test_config_cmd.[!C]*'
+        -m 'distutils.tests.test_config_cmd.ConfigTestCase.test_[!s]*'
+        -m 'distutils.tests.test_install_*'
+        -m 'distutils.tests.test_install.[!I]*'
+        -m 'distutils.tests.test_install.InstallTestCase.test_[!r]*'
+        -m 'distutils.tests.test_install.InstallTestCase.test_record'
+        -m 'distutils.[!t]*'
+        test_distutils
+    - name: Run tests curses
+      run: >
+        ./final/static_python -E -m test -uall
+        -m 'test.test_curses.[!T]*'
+        -m 'test.test_curses.Test[!C]*'
+        -m 'test.test_curses.TestCurses.test_[!c]*'
+        test_curses
+        

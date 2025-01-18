@@ -1,0 +1,21 @@
+name: Test CI
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  
+  build_normal:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Prerequisites 
+      run: sudo apt install -y build-essential zlib1g-dev wget python3 python3-requests
+    - uses: actions/checkout@v3
+    - name: Get compiler
+      run: wget https://github.com/sagimor6/static-glibc-toolchain/releases/download/tmp_tag/x86_64-unknown-linux-gnu.tar.xz && tar -xjf x86_64-unknown-linux-gnu.tar.xz
+    - name: Make static python
+      run: MY_CROSS_ARCH="x86_64-unknown-linux-gnu" MY_CROSS_PATH="$(pwd)/x86_64-unknown-linux-gnu/bin" MODULE_BLACKLIST="_ctypes _ctypes_test ctypes" ONLY_TEST_BUILD=y USE_NCURSES_WIDE_CHAR=y Python_VER=3.9.7 make -j all
+    - name: Run tests
+      run: ./final/static_python -E -m test -uall -i test.test_capi.Test_ModuleStateAccess.* -i test.test_imp.ImportTests.*_module* -i test.test_import.ImportTests.test_from_import_missing_attr_has_name_and_so_path -i test.test_importlib.extension.test_loader.* -i test.test_importlib.extension.test_finder.*_FinderTests.test_module -i test.test_email.test_utils.LocaltimeTests.test_variable_tzname
+
